@@ -1,12 +1,9 @@
 package airtype
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"log"
-	"os"
-	"strings"
 	"sync"
 	"time"
 
@@ -19,23 +16,24 @@ type Client struct {
 	ctx            context.Context
 	cancel         context.CancelFunc
 	URL            string
+	ip             string
 	mu             sync.Mutex
 	isReconnecting bool
 }
 
 // NewClient creates a new AirType client.
-func NewClient() *Client {
+func NewClient(ip string) *Client {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &Client{
 		ctx:    ctx,
 		cancel: cancel,
+		ip:     ip,
 	}
 }
 
 // Connect establishes a WebSocket connection to the AirType server.
 func (c *Client) Connect() error {
-	ip := GetIPAddress()
-	c.URL = fmt.Sprintf("ws://%s:8307/service", ip)
+	c.URL = fmt.Sprintf("ws://%s:8307/service", c.ip)
 
 	var err error
 	c.conn, _, err = websocket.Dial(c.ctx, c.URL, nil)
@@ -131,22 +129,6 @@ func (c *Client) Close() {
 		c.conn.Close(websocket.StatusNormalClosure, "bye")
 	}
 	c.mu.Unlock()
-}
-
-// GetIPAddress reads the IP from a file or prompts the user for it.
-func GetIPAddress() string {
-	if data, err := os.ReadFile("ip.txt"); err == nil {
-		return strings.TrimSpace(string(data))
-	}
-
-	fmt.Print("Enter your iPhone's AirType IP address: ")
-	reader := bufio.NewReader(os.Stdin)
-	ip, _ := reader.ReadString('\n')
-	ip = strings.TrimSpace(ip)
-	if err := os.WriteFile("ip.txt", []byte(ip), 0644); err != nil {
-		log.Printf("Warning: failed to save IP address to ip.txt: %v", err)
-	}
-	return ip
 }
 
 // TypeChar sends a single character or a special command.
