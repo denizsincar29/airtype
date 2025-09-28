@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/pkg/term"
+	"golang.org/x/term"
 	"nhooyr.io/websocket"
 )
 
@@ -56,21 +56,20 @@ func main() {
 	}
 	fmt.Println("Received:", string(msg))
 
-	// Open terminal in raw mode
-	t, err := term.Open("/dev/tty")
+	// Set terminal to raw mode
+	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
 	if err != nil {
-		log.Fatalf("Failed to open terminal: %v", err)
-	}
-	defer t.Close()
-	if err := term.RawMode(t); err != nil {
 		log.Fatalf("Failed to set raw mode: %v", err)
 	}
+	defer term.Restore(int(os.Stdin.Fd()), oldState)
+
+	fmt.Println("Terminal in raw mode. Press Esc to exit.")
 
 	var wordCount uint8 = 0
 	buf := make([]byte, 1)
 
 	for {
-		n, err := t.Read(buf)
+		n, err := os.Stdin.Read(buf)
 		if err != nil || n == 0 {
 			continue
 		}
