@@ -50,23 +50,33 @@ func main() {
 	fmt.Println("Terminal in raw mode. Press Ctrl+C or Esc to exit.")
 
 	// Read from terminal and send to client
-	buf := make([]byte, 1)
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Println("Reading runes...")
 	for {
-		n, err := os.Stdin.Read(buf)
-		if err != nil || n == 0 {
-			continue
-		}
-
-		ch := buf[0]
-		// 3 = Ctrl+C, 27 = Esc
-		if ch == 3 || ch == 27 {
+		r, _, err := reader.ReadRune()
+		if err != nil {
+			log.Printf("Error reading rune: %v", err)
 			return
 		}
 
-		if err := client.TypeChar(ch); err != nil {
+		// 3 = Ctrl+C, 27 = Esc
+		if r == 3 || r == 27 {
+			return
+		}
+
+		var data []byte
+		switch r {
+		case '\n', '\r': // Enter
+			data = []byte("\n")
+		case 127, 8: // Backspace / DEL
+			data = []byte("#del$")
+		default:
+			data = []byte(string(r))
+		}
+
+		if err := client.Write(data); err != nil {
 			log.Printf("Error sending character: %v", err)
-			// If sending fails, we might have disconnected.
-			// The reconnection logic will be added in the next step.
+			// Reconnection logic is handled by the client's Write method
 		}
 	}
 }

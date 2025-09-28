@@ -131,16 +131,3 @@ func (c *Client) Close() {
 	c.mu.Unlock()
 }
 
-// TypeChar sends a single character or a special command.
-func (c *Client) TypeChar(ch byte) error {
-	var data []byte
-	switch ch {
-	case '\n', '\r': // Enter
-		data = []byte("\n")
-	case 127, 8: // Backspace / DEL
-		data = []byte("#del$")
-	default:
-		data = []byte{ch}
-	}
-	return c.Write(data)
-}
