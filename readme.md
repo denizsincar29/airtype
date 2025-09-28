@@ -2,15 +2,26 @@
 
 A command-line tool that allows you to type on your iPhone from your PC using the [AirType](https://apps.apple.com/us/app/airtype-type-from-your-computer/id922932291) application.
 
+This rewritten version is built in Go and offers a more robust, cross-platform experience with automatic reconnection capabilities.
+
+## Features
+
+- **Interactive Typing**: Run the tool in your terminal and type directly to your device.
+- **File-Based Typing**: Automatically type the content of a text file.
+- **Cross-Platform**: Works on Windows, macOS, and Linux.
+- **Automatic Reconnection**: If the connection to your device drops, the tool will automatically try to reconnect.
+
 ## How It Works
 
-The AirType application creates a small web server on your iPhone. When you select AirType as your keyboard, it directs you to a local URL where you can type in a text field on the page.
+The AirType application creates a small web server on your iPhone. When you select AirType as your keyboard, it directs you to a local URL where you can type in a text field on the page. This tool connects to the underlying WebSocket service to send keystrokes from your computer to your iPhone.
 
-This project analyzes the page's source code and uses simple WebSockets to send the text you type on your computer to your iPhone. This command-line tool simplifies the process.
+## Project Structure
 
-The tool was developed using various programming languages I have experience with. I started with Python, then moved to Rust, and finally settled on Go.
+The project is organized into two main directories:
+- `cmd/`: Contains the entry points for the two command-line tools (`airtype` and `typetext`).
+- `internal/`: Holds the shared `airtype` library, which manages the WebSocket connection and communication logic.
 
-## Installation and Usage
+## Installation
 
 1. **Clone the repository:**
    ```bash
@@ -27,14 +38,29 @@ The tool was developed using various programming languages I have experience wit
    go mod tidy
    ```
 
-4. **Run the application:**
-   ```bash
-   go run .
-   ```
+## Usage
 
-You will then be prompted to enter the IP address (without the port) displayed on the AirType extension. Once you enter it, you can start typing on your iPhone from your PC.
+Before running either tool, you will be prompted to enter the IP address displayed on the AirType keyboard extension on your iPhone. The IP will be saved to an `ip.txt` file for future use.
 
 **Note:** Ensure your iPhone and PC are on the same network.
+
+### Interactive Typing
+
+To type interactively from your terminal:
+```bash
+go run ./cmd/airtype
+```
+Press `Esc` or `Ctrl+C` to exit.
+
+### Typing from a File
+
+To automatically type the contents of a file:
+1. Create a text file (e.g., `text.txt`) with the content you want to send.
+2. Run the `typetext` command:
+   ```bash
+   go run ./cmd/typetext --file text.txt
+   ```
+   You can use the `--file` flag to specify a different input file.
 
 ## Disclaimer
 
