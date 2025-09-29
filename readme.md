@@ -1,90 +1,155 @@
 # AirType CLI
 
-A command-line tool that allows you to type on your iPhone from your PC using the [AirType](https://apps.apple.com/us/app/airtype-type-from-your-computer/id922932291) application.
+A cross-platform command-line tool that lets you type on your iPhone from your PC using the [AirType](https://apps.apple.com/us/app/airtype-type-from-your-computer/id922932291) app.
 
-This rewritten version is built in Go and offers a more robust, cross-platform experience with automatic reconnection capabilities.
+Built in **Go** for robustness, automatic reconnection, and a smooth typing experience.
+
+---
+
+## Quick Start
+
+```bash
+git clone https://github.com/denizsincar29/airtype.git
+cd airtype
+go build -o airtype ./cmd/airtype
+./airtype --ip 1.25   # or just ./airtype if ip.txt exists
+```
+
+---
 
 ## Features
 
-- **Interactive Typing**: Run the tool in your terminal and type directly to your device.
-- **File-Based Typing**: Automatically type the content of a text file.
-- **Cross-Platform**: Works on Windows, macOS, and Linux.
-- **Automatic Reconnection**: If the connection to your device drops, the tool will automatically try to reconnect.
+* **Interactive Typing** – Type directly from your terminal.
+* **File-Based Typing** – Send file contents with `--file`.
+* **Clipboard Support** – Send clipboard text with `-c`.
+* **Cross-Platform** – Works on Windows, macOS, and Linux.
+* **Automatic Reconnection** – Reconnects if connection drops.
+
+---
 
 ## How It Works
 
-The AirType application creates a small web server on your iPhone. When you select AirType as your keyboard, it directs you to a local URL where you can type in a text field on the page. This tool connects to the underlying WebSocket service to send keystrokes from your computer to your iPhone.
+The AirType app starts a local web server on your iPhone.
+When you switch to the AirType keyboard, it shows an IP address.
+This CLI connects to its **WebSocket** endpoint and streams your keystrokes.
+
+---
 
 ## Project Structure
 
-The project is organized into two main directories:
-- `cmd/`: Contains the entry points for the two command-line tools (`airtype` and `typetext`).
-- `internal/`: Holds the shared `airtype` library, which manages the WebSocket connection and communication logic.
+* `cmd/` – CLI entry point (`airtype`).
+* `airtype/` – Library that manages the WebSocket connection and communication.
 
-## IOs installation
-To use this tool, you need to have the AirType app installed on your iPhone. You can download it from the [App Store](https://apps.apple.com/us/app/airtype-type-from-your-computer/id922932291).
-This is a free app that works as a keyboard extension.
-Now open settings, go to general, then keyboard, and finally keyboards. Add a new keyboard and under third party keyboards, select AirType. After adding it, tap on it and enable "Allow Full Access".
+---
+
+## iOS Setup
+
+1. Install [AirType](https://apps.apple.com/us/app/airtype-type-from-your-computer/id922932291) (free) from the App Store.
+2. Open **Settings → General → Keyboard → Keyboards**.
+3. Tap **Add New Keyboard**, scroll down to **Third-Party Keyboards**, and select **AirType**.
+4. Tap on **AirType** in the list and enable **Allow Full Access**.
+
+---
 
 ## PC Installation
 
-1. **Clone the repository:**
+1. Install [Go](https://go.dev/dl/).
+2. Clone the repository:
+
    ```bash
    git clone https://github.com/denizsincar29/airtype.git
-   ```
-
-2. **Navigate to the project directory:**
-   ```bash
    cd airtype
    ```
+3. Install dependencies:
 
-3. **Install dependencies:**
    ```bash
    go mod tidy
    ```
+4. (Optional) Build a binary:
+
+   ```bash
+   go build -o airtype ./cmd/airtype
+   ```
+
+---
 
 ## Usage
 
-On your IOs device, open any app that allows text input (like Notes or Messages) and switch to the AirType keyboard. You should see an IP address displayed on the keyboard extension.
-Now run airtype cli by entering the following command in your terminal, replacing `<IP_ADDRESS>` with the IP address shown on your iPhone:
-```bashgo run ./cmd/airtype --ip <IP_ADDRESS>
+Switch to the **AirType keyboard** on your iPhone.
+The keyboard will display an IP address — use it with `--ip`:
+
+```bash
+./airtype --ip <ADDRESS>
 ```
 
-If you don't provide the the IP flag, it will try to read from ip.txt file in the current directory. If the file does not exist, it will give an error.
+If `--ip` is omitted, the tool will read from `ip.txt` in the current directory automatically:
 
-**Note:** Ensure your iPhone and PC are on the same network.
+```bash
+./airtype    # uses ip.txt by default
+```
+
+### `--ip` Flag
+
+Supports:
+
+* Full IP (`192.168.1.25`)
+* Last two octets (`1.25` → expands to `192.168.1.25`)
+* Filename containing IP (`ip.txt`)
+
+---
 
 ### Interactive Typing
 
-To type interactively from your terminal:
 ```bash
-go run ./cmd/airtype  # optionally add --ip <IP_ADDRESS>
+./airtype --ip <ADDRESS>
 ```
-Press `Esc` or `Ctrl+C` to exit.
+
+Press **Ctrl+C** (or Esc in some terminals) to exit.
+
+---
 
 ### Typing from a File
 
-To automatically type the contents of a file:
-1. Create a text file (e.g., `text.txt`) with the content you want to send.
-2. Now run the same airtype tool with the --file flag:
-   ```bash
-   go run ./cmd/airtype --file text.txt  # optionally add --ip <IP_ADDRESS>
-   ```
+```bash
+./airtype --file mytext.txt --ip <ADDRESS>
+```
 
-### typing from clipboard
-To automatically type the contents of your clipboard:
-1. Copy the content you want to send to your clipboard.
-2. Now run the same airtype tool with the -c flag:
-   ```bash
-   go run ./cmd/airtype -c  # optionally add --ip <IP_ADDRESS>
-   ```
+or, if `ip.txt` exists:
+
+```bash
+./airtype --file mytext.txt
+```
+
+---
+
+### Typing from Clipboard
+
+```bash
+./airtype -c --ip <ADDRESS>
+```
+
+or:
+
+```bash
+./airtype -c
+```
+
+---
+
+## Notes
+
+* Your iPhone and PC must be on the same Wi-Fi network.
+* Typing speed may vary depending on network latency.
+
+---
 
 ## Disclaimer
 
-This is not an official application. It was created for fun and learning purposes. Use it at your own risk.
+This is an **unofficial** project made for fun and learning.
+Traffic is sent over an **unencrypted WebSocket**, so use only on trusted networks.
 
-Since it uses an open and straightforward method, it is easy to read the JavaScript from the page and create your own client. Therefore, do not expect any security or privacy from this project. Use it only on trusted networks, as anyone on the same network can easily sniff the traffic and see what you type.
+---
 
 ## License
 
-This project is licensed under the MIT License.
+Licensed under the MIT License.
