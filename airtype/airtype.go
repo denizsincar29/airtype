@@ -10,6 +10,11 @@ import (
 	"nhooyr.io/websocket"
 )
 
+var (
+	DELETE = []byte("#del$")
+	ENTER  = []byte("\n")
+)
+
 // Client handles the connection and communication with the AirType server.
 type Client struct {
 	conn           *websocket.Conn
@@ -121,6 +126,16 @@ func (c *Client) Write(data []byte) error {
 	return nil
 }
 
+// Delete sends a delete command to the AirType server.
+func (c *Client) Delete() error {
+	return c.Write(DELETE)
+}
+
+// Enter sends an enter command to the AirType server.
+func (c *Client) Enter() error {
+	return c.Write(ENTER)
+}
+
 // Close gracefully closes the connection.
 func (c *Client) Close() {
 	c.cancel() // This will stop reconnection attempts
@@ -130,4 +145,3 @@ func (c *Client) Close() {
 	}
 	c.mu.Unlock()
 }
-

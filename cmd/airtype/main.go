@@ -67,9 +67,9 @@ func main() {
 		var data []byte
 		switch r {
 		case '\n', '\r': // Enter
-			data = []byte("\n")
+			data = airtype.ENTER
 		case 127, 8: // Backspace / DEL
-			data = []byte("#del$")
+			data = airtype.DELETE
 		default:
 			data = []byte(string(r))
 		}
