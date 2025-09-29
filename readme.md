@@ -45,7 +45,12 @@ Now open settings, go to general, then keyboard, and finally keyboards. Add a ne
 
 ## Usage
 
-Before running either tool, you will be prompted to enter the IP address displayed on the AirType keyboard extension on your iPhone. The IP will be saved to an `ip.txt` file for future use.
+On your IOs device, open any app that allows text input (like Notes or Messages) and switch to the AirType keyboard. You should see an IP address displayed on the keyboard extension.
+Now run airtype cli by entering the following command in your terminal, replacing `<IP_ADDRESS>` with the IP address shown on your iPhone:
+```bashgo run ./cmd/airtype --ip <IP_ADDRESS>
+```
+
+If you don't provide the the IP flag, it will try to read from ip.txt file in the current directory. If the file does not exist, it will give an error.
 
 **Note:** Ensure your iPhone and PC are on the same network.
 
@@ -53,7 +58,7 @@ Before running either tool, you will be prompted to enter the IP address display
 
 To type interactively from your terminal:
 ```bash
-go run ./cmd/airtype
+go run ./cmd/airtype  # optionally add --ip <IP_ADDRESS>
 ```
 Press `Esc` or `Ctrl+C` to exit.
 
@@ -61,11 +66,18 @@ Press `Esc` or `Ctrl+C` to exit.
 
 To automatically type the contents of a file:
 1. Create a text file (e.g., `text.txt`) with the content you want to send.
-2. Run the `typetext` command:
+2. Now run the same airtype tool with the --file flag:
    ```bash
-   go run ./cmd/typetext --file text.txt
+   go run ./cmd/airtype --file text.txt  # optionally add --ip <IP_ADDRESS>
    ```
-   You can use the `--file` flag to specify a different input file.
+
+### typing from clipboard
+To automatically type the contents of your clipboard:
+1. Copy the content you want to send to your clipboard.
+2. Now run the same airtype tool with the -c flag:
+   ```bash
+   go run ./cmd/airtype -c  # optionally add --ip <IP_ADDRESS>
+   ```
 
 ## Disclaimer
 
