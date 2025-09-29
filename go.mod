@@ -7,4 +7,7 @@ require (
 	nhooyr.io/websocket v1.8.17
 )
 
-require golang.org/x/sys v0.36.0 // indirect
+require (
+	github.com/denizsincar29/goerror v0.0.0-20250401143956-549d4fe59737 // indirect
+	golang.org/x/sys v0.36.0 // indirect
+)

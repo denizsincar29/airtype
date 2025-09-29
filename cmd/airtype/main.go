@@ -2,34 +2,46 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 
 	"github.com/denizsincar29/airtype/airtype"
+	"github.com/denizsincar29/goerror"
 	"golang.org/x/term"
 )
 
 func main() {
-	// Configure logging
-	logFile, err := os.OpenFile("airtype.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	if err != nil {
-		log.Fatalf("Failed to open log file: %v", err)
+	// Define flags
+	filename := flag.String("file", "", "Path to the text file")
+	ip := flag.String("ip", "ip.txt", "IP address")
+	flag.Parse()
+	if *ip == "" {
+		fmt.Println("IP address is required. Use -ip flag to specify it.")
+		return
 	}
-	defer logFile.Close()
-	log.SetOutput(logFile)
 
-	// Get IP and create client
-	ip := getIPAddress()
-	client := airtype.NewClient(ip)
-	if err := client.Connect(); err != nil {
-		log.Fatalf("Error: %v", err)
-	}
+	client := airtype.NewClient(*ip, nil) // nil logger means default logger
+	logger := client.GetLogger()
+	e := goerror.NewError(logger)
+	err := client.Connect()
+	e.Must(err, "Failed to connect to AirType device at %s", *ip)
 	defer client.Close()
 
+	// If a file is provided, read and send its content
+	if *filename != "" {
+		content, err := os.ReadFile(*filename)
+		e.Must(err, "Failed to read file: %s", *filename)
+		err = client.Write(content)
+		e.Must(err, "Failed to send file content to AirType device")
+		fmt.Println("File content sent successfully.")
+		return
+	}
+
+	// If no file is provided, enter interactive mode
+	fmt.Println("Entering interactive mode. Type your input:")
 	// Handle Ctrl+C gracefully
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
@@ -42,9 +54,7 @@ func main() {
 
 	// Set terminal to raw mode
 	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
-	if err != nil {
-		log.Fatalf("Failed to set raw mode: %v", err)
-	}
+	e.Must(err, "Failed to set terminal to raw mode")
 	defer term.Restore(int(os.Stdin.Fd()), oldState)
 
 	fmt.Println("Terminal in raw mode. Press Ctrl+C or Esc to exit.")
@@ -54,8 +64,8 @@ func main() {
 	fmt.Println("Reading runes...")
 	for {
 		r, _, err := reader.ReadRune()
-		if err != nil {
-			log.Printf("Error reading rune: %v", err)
+		e.Check(err, "Failed to read rune from terminal")
+		if e.IsError() { // saved the last error
 			return
 		}
 
@@ -73,26 +83,7 @@ func main() {
 		default:
 			data = []byte(string(r))
 		}
-
-		if err := client.Write(data); err != nil {
-			log.Printf("Error sending character: %v", err)
-			// Reconnection logic is handled by the client's Write method
-		}
+		err = client.Write(data)
+		e.Check(err, "Failed to send character to AirType device")
 	}
-}
-
-// getIPAddress reads the IP from a file or prompts the user for it.
-func getIPAddress() string {
-	if data, err := os.ReadFile("ip.txt"); err == nil {
-		return strings.TrimSpace(string(data))
-	}
-
-	fmt.Print("Enter your iPhone's AirType IP address: ")
-	reader := bufio.NewReader(os.Stdin)
-	ip, _ := reader.ReadString('\n')
-	ip = strings.TrimSpace(ip)
-	if err := os.WriteFile("ip.txt", []byte(ip), 0644); err != nil {
-		log.Printf("Warning: failed to save IP address to ip.txt: %v", err)
-	}
-	return ip
 }
