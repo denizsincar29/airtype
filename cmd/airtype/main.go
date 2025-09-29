@@ -10,11 +10,13 @@ import (
 
 	"github.com/denizsincar29/airtype/airtype"
 	"github.com/denizsincar29/goerror"
+	"golang.design/x/clipboard"
 	"golang.org/x/term"
 )
 
 func main() {
 	// Define flags
+	is_clipboard := flag.Bool("c", false, "Use clipboard input")
 	filename := flag.String("file", "", "Path to the text file")
 	ip := flag.String("ip", "ip.txt", "IP address")
 	flag.Parse()
@@ -30,13 +32,22 @@ func main() {
 	e.Must(err, "Failed to connect to AirType device at %s", *ip)
 	defer client.Close()
 
+	// initialize clipboard if needed
+	err = clipboard.Init()
+	e.Must(err, "Failed to initialize clipboard")
+
 	// If a file is provided, read and send its content
-	if *filename != "" {
-		content, err := os.ReadFile(*filename)
-		e.Must(err, "Failed to read file: %s", *filename)
+	if *filename != "" || *is_clipboard {
+		var content []byte
+		if *is_clipboard {
+			content = clipboard.Read(clipboard.FmtText)
+		} else {
+			content, err = os.ReadFile(*filename)
+			e.Must(err, "Failed to read file: %s", *filename)
+		}
 		err = client.Write(content)
 		e.Must(err, "Failed to send file content to AirType device")
-		fmt.Println("File content sent successfully.")
+		fmt.Println("File or clipboard content sent successfully.")
 		return
 	}
 

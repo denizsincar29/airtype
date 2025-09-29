@@ -136,7 +136,9 @@ func (c *Client) Write(data []byte) error {
 	if conn == nil || isReconnecting {
 		return fmt.Errorf("not connected or reconnecting")
 	}
-
+	// remove \r characters from data
+	data = []byte(strings.ReplaceAll(string(data), "\r", ""))
+	// Send the message
 	err := conn.Write(c.ctx, websocket.MessageText, data)
 	if err != nil {
 		go c.reconnect()
