@@ -21,7 +21,12 @@ The project is organized into two main directories:
 - `cmd/`: Contains the entry points for the two command-line tools (`airtype` and `typetext`).
 - `internal/`: Holds the shared `airtype` library, which manages the WebSocket connection and communication logic.
 
-## Installation
+## IOs installation
+To use this tool, you need to have the AirType app installed on your iPhone. You can download it from the [App Store](https://apps.apple.com/us/app/airtype-type-from-your-computer/id922932291).
+This is a free app that works as a keyboard extension.
+Now open settings, go to general, then keyboard, and finally keyboards. Add a new keyboard and under third party keyboards, select AirType. After adding it, tap on it and enable "Allow Full Access".
+
+## PC Installation
 
 1. **Clone the repository:**
    ```bash
